@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QCAA Subject Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Dark mode styles */
+        body.dark-mode {
+            background-color: #121212;
+            color: #f1f1f1;
+        }
+
+        body.dark-mode .bg-white {
+            background-color: #1e1e1e;
+            color: #f1f1f1;
+        }
+
+        body.dark-mode .text-gray-800 {
+            color: #e1e1e1;
+        }
+
+        body.dark-mode .text-gray-700 {
+            color: #c1c1c1;
+        }
+
+        body.dark-mode .bg-gray-100 {
+            background-color: #2a2a2a;
+        }
+
+        body.dark-mode .border-gray-300 {
+            border-color: #4a4a4a;
+        }
+
+        body.dark-mode .bg-gray-50 {
+            background-color: #242424;
+        }
+
+        body.dark-mode .text-indigo-600 {
+            color: #bb86fc;
+        }
+
+        body.dark-mode .bg-gray-200 {
+            background-color: #3a3a3a;
+            color: #f1f1f1;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen p-8">
+    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="p-8">
+            <h1 class="text-3xl font-semibold text-center text-gray-800 mb-6">QCAA Subject Calculator</h1>
+
+            <!-- Dark Mode Toggle Button -->
+            <div class="flex justify-center mb-6">
+                <button id="mode-toggle" class="bg-gray-200 text-gray-700 p-2 rounded-full shadow-md transition duration-300 ease-in-out">
+                    <svg id="mode-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path id="moon-icon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 3v2M12 19v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M3 12h2m14 0h2m-9.78-7.78l1.42 1.42M16.36 8.36l1.42 1.42M12 7c3.87 0 7 3.13 7 7s-3.13 7-7 7 7-3.13 7-7-3.13-7-7-7z"/>
+                    </svg>
+                </button>
+            </div>
+
+            <p class="text-center text-gray-600 mb-8">Select up to 6 subjects and enter your scores to calculate your results. Enter the total scores in an ATAR Calculator for a more accurate ATAR.</p>
+            
+            <div class="mb-6">
+                <label for="subject-search" class="block text-sm font-medium text-gray-700 mb-2">Search for a subject:</label>
+                <input type="text" id="subject-search" placeholder="Type to search..." class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 ease-in-out">
+            </div>
+            <div id="search-results" class="mb-8 max-h-60 overflow-y-auto border border-gray-200 rounded-md"></div>
+            
+            <div id="selected-subjects"></div>
+        </div>
+    </div>
+
+    <script>
+        const allSubjects = [
+            {
+                name: "English",
+                assessments: [
+                    { name: "IA1 - Extended Response", weight: 25 },
+                    { name: "IA2 - Persuasive Spoken", weight: 25 },
+                    { name: "IA3 - Imaginative Written Response", weight: 25 },
+                    { name: "EA - Analytical Written Response", weight: 25 },
+                ]
+            },
+            {
+                name: "English as an Additional Language",
+                assessments: [
+                    { name: "IA1 - Analytical Written Response", weight: 25 },
+                    { name: "IA2 - Persuasive Written Response", weight: 25 },
+                    { name: "IA3 - Imaginative Spoken", weight: 25 },
+                    { name: "EA - Analytical Extended Response", weight: 25 },
+                ]
+            },
+            {
+                name: "Essential English",
+                assessments: [
+                    { name: "IA1 - Extended Response - Spoken", weight: 25 },
+                    { name: "IA2 - Common Internal Assessment", weight: 25 },
+                    { name: "IA3 - Extended Response - Multimodal", weight: 25 },
+                    { name: "IA4 - Extended Response - Written", weight: 25 },
+                ]
+            },
+            {
+                name: "Literature",
+                assessments: [
+                    { name: "IA1 - Examination - Analytical Response", weight: 25 },
+                    { name: "IA2 - Imaginative Spoken Response", weight: 25 },
+                    { name: "IA3 - Imaginative Written Response", weight: 25 },
+                    { name: "EA - Analytical Written Response", weight: 25 },
+                ]
+            },
+            {
+                name: "Essential Mathematics",
+                assessments: [
+                    { name: "IA1 - Problem-solving and Modelling Task", weight: 25 },
+                    { name: "IA2 - Common Internal Assessment", weight: 25 },
+                    { name: "IA3 - Problem-solving and Modelling Task", weight: 25 },
+                    { name: "IA4 - Examination", weight: 25 },
+                ]
+            },
+            {
+                name: "General Mathematics",
+                assessments: [
+                    { name: "IA1 - Problem-solving and Modelling Task", weight: 20 },
+                    { name: "IA2 - Examination", weight: 15 },
+                    { name: "IA3 - Examination", weight: 15 },
+                    { name: "EA - Examination", weight: 50 },
+                ]
+            },
+            {
+                name: "Mathematical Methods",
+                assessments: [
+                    { name: "IA1 - Problem-solving and Modelling Task", weight: 20 },
+                    { name: "IA2 - Examination", weight: 15 },
+                    { name: "IA3 - Examination", weight: 15 },
+                    { name: "EA - Examination", weight: 50 },
+                ]
+            },
+            {
+                name: "Specialist Mathematics",
+                assessments: [
+                    { name: "IA1 - Problem-solving and Modelling Task", weight: 20 },
+                    { name: "IA2 - Examination", weight: 15 },
+                    { name: "IA3 - Examination", weight: 15 },
+                    { name: "EA - Examination", weight: 50 },
+                ]
+            },
+            {
+                name: "Accounting",
+                assessments: [
+                    { name: "IA1 - Examination", weight: 25 },
+                    { name: "IA2 - Project", weight: 25 },
+                    { name: "IA3 - Project", weight: 25 },
+                    { name: "EA - Examination", weight: 25 },
+                ]
+            },
+            {
+                name: "Ancient History",
+                assessments: [
+                    { name: "IA1 - Examination - Essay", weight: 25 },
+                    { name: "IA2 - Independent Source Investigation", weight: 25 },
+                    { name: "IA3 - Investigation - Historical Essay", weight: 25 },
+                    { name: "EA - Examination", weight: 25 },
+                ]
+            },
+            {
+                name: "Business",
+                assessments: [
+                    { name: "IA1 - Examination", weight: 25 },
+                    { name: "IA2 - Investigation - Business Report", weight: 25 },
+                    { name: "IA3 - Extended Response - Feasibility Report", weight: 25 },
+                    { name: "EA - Examination", weight: 25 },
+                ]
+            },
+            {
+                name: "Economics",
+                assessments: [
+                    { name: "IA1 - Examination", weight: 25 },
+                    { name: "IA2 - Investigation", weight: 25 },
+                    { name: "IA3 - Extended Response", weight: 25 },
+                    { name: "EA - Examination", weight: 25 },
+                ]
+            },
+            {
+                name: "Geography",
+                assessments: [
+                    { name: "IA1 - Examination", weight: 25 },
+                    { name: "IA2 - Field Report", weight: 25 },
+                    { name: "IA3 - Data Report", weight: 25 },
+                    { name: "EA - Examination", weight: 25 },
+                ]
+            },
+            {
+                name: "Legal Studies",
+                assessments: [
+                    { name: "IA1 - Examination", weight: 25 },
+                    { name: "IA2 - Investigation - Inquiry Report", weight: 25 },
+                    { name: "IA3 - Investigation - Argumentative Essay", weight: 25 },
+                    { name: "EA - Examination", weight: 25 },
+                ]
+            },
+            {
+                name: "Modern History",
+                assessments: [
+                    { name: "IA1 - Examination - Essay", weight: 25 },
+                    { name: "IA2 - Independent Source Investigation", weight: 25 },
+                    { name: "IA3 - Investigation - Historical Essay", weight: 25 },
+                    { name: "EA - Examination", weight: 25 },
+                ]
+            },
+            {
+                name: "Study of Religion",
+                assessments: [
+                    { name: "IA1 - Examination - Extended Response", weight: 25 },
+                    { name: "IA2 - Investigation - Inquiry Response", weight: 25 },
+                    { name: "IA3 - Investigation - Examination", weight: 25 },
+                    { name: "EA - Examination", weight: 25 },
+                ]
+            },
+            {
+                name: "Biology",
+                assessments: [
+                    { name: "IA1 - Data Test", weight: 10 },
+                    { name: "IA2 - Student Experiment", weight: 20 },
+                    { name: "IA3 - Research Investigation", weight: 20 },
+                    { name: "EA - Examination", weight: 50 },
+                ]
+            },
+            {
+                name: "Chemistry",
+                assessments: [
+                    { name: "IA1 - Data Test", weight: 10 },
+                    { name: "IA2 - Student Experiment", weight: 20 },
+                    { name: "IA3 - Research Investigation", weight: 20 },
+                    { name: "EA - Examination", weight: 50 },
+                ]
+            },
+            {
+                name: "Earth & Environmental Science",
+                assessments: [
+                    { name: "IA1 - Data Test", weight: 10 },
+                    { name: "IA2 - Student Experiment", weight: 20 },
+                    { name: "IA3 - Research Investigation", weight: 20 },
+                    { name: "EA - Examination", weight: 50 },
+                ]
+            },
+            {
+                name: "Physics",
+                assessments: [
+                    { name: "IA1 - Data Test", weight: 10 },
+                    { name: "IA2 - Student Experiment", weight: 20 },
+                    { name: "IA3 - Research Investigation", weight: 20 },
+                    { name: "EA - Examination", weight: 50 },
+                ]
+            },
+            {
+                name: "Psychology",
+                assessments: [
+                    { name: "IA1 - Data Test", weight: 10 },
+                    { name: "IA2 - Student Experiment", weight: 20 },
+                    { name: "IA3 - Research Investigation", weight: 20 },
+                    { name: "EA - Examination", weight: 50 },
+                ]
+            },
+            {
+                name: "Japanese",
+                assessments: [
+                    { name: "IA1 - Examination", weight: 15 },
+                    { name: "IA2 - Examination", weight: 30 },
+                    { name: "IA3 - Extended response", weight: 30 },
+                    { name: "EA - Examination", weight: 25 },
+                ]
+            },
+            {
+                name: "Music",
+                assessments: [
+                    { name: "IA1 - Performance", weight: 20 },
+                    { name: "IA2 - Composition", weight: 20 },
+                    { name: "IA3 - Integrated Project", weight: 35 },
+                    { name: "EA - Examination", weight: 25 },
+                ]
+            },
+            {
+                name: "Visual Art",
+                assessments: [
+                    { name: "IA1 - Investigation", weight: 15 },
+                    { name: "IA2 - Project", weight: 25 },
+                    { name: "IA3 - Project", weight: 35 },
+                    { name: "EA - Examination", weight: 25 },
+                ]
+            },
+            {
+                name: "Digital Solutions",
+                assessments: [
+                    { name: "IA1 - Investigation", weight: 20 },
+                    { name: "IA2 - Project", weight: 30 },
+                    { name: "IA3 - Project", weight: 25 },
+                    { name: "EA - Examination", weight: 25 },
+                ]
+            },
+            {
+                name: "Design",
+                assessments: [
+                    { name: "IA1 - Examination", weight: 15 },
+                    { name: "IA2 - Project", weight: 35 },
+                    { name: "IA3 - Project", weight: 25 },
+                    { name: "EA - Examination", weight: 25 },
+                ]
+            },
+        ];
+
+        let selectedSubjects = [];
+        const searchInput = document.getElementById('subject-search');
+        const searchResults = document.getElementById('search-results');
+        const selectedSubjectsContainer = document.getElementById('selected-subjects');
+
+        searchInput.addEventListener('input', handleSearch);
+
+        function handleSearch() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const filteredSubjects = allSubjects.filter(subject => 
+                subject.name.toLowerCase().includes(searchTerm)
+            );
+
+            searchResults.innerHTML = '';
+            filteredSubjects.forEach(subject => {
+                const div = document.createElement('div');
+                div.className = 'p-3 hover:bg-gray-100 cursor-pointer transition duration-150 ease-in-out';
+                div.textContent = subject.name;
+                div.addEventListener('click', () => addSubject(subject));
+                searchResults.appendChild(div);
+            });
+        }
+
+        function addSubject(subject) {
+            if (selectedSubjects.length < 6 && !selectedSubjects.some(s => s.name === subject.name)) {
+                selectedSubjects.push(subject);
+                renderSelectedSubjects();
+                searchInput.value = '';
+                searchResults.innerHTML = '';
+            }
+        }
+
+        function removeSubject(subjectName) {
+            selectedSubjects = selectedSubjects.filter(s => s.name !== subjectName);
+            renderSelectedSubjects();
+        }
+
+        function calculateTotalScore(subject) {
+            const scores = Array.from(document.querySelectorAll(`[data-subject="${subject.name}"] input[type="number"]`))
+                .map(input => Math.min(parseFloat(input.value) || 0, 100)); // Cap individual scores at 100
+            
+            const totalScore = subject.assessments.reduce((total, assessment, index) => {
+                return total + (scores[index] * assessment.weight / 100);
+            }, 0);
+
+            return Math.min(totalScore, 100).toFixed(2); // Cap total score at 100
+        }
+
+        function renderSelectedSubjects() {
+            selectedSubjectsContainer.innerHTML = '';
+            selectedSubjects.forEach(subject => {
+                const subjectCard = document.createElement('div');
+                subjectCard.className = 'bg-white rounded-xl shadow-md overflow-hidden mb-6 transition duration-300 ease-in-out transform hover:scale-102 hover:shadow-lg';
+                subjectCard.setAttribute('data-subject', subject.name);
+
+                const header = document.createElement('div');
+                header.className = 'bg-gray-100 px-6 py-4 flex justify-between items-center';
+                
+                const title = document.createElement('h3');
+                title.className = 'text-lg font-semibold text-gray-800';
+                title.textContent = subject.name;
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+                removeBtn.className = 'text-red-500 hover:text-red-700 focus:outline-none transition duration-150 ease-in-out';
+                removeBtn.addEventListener('click', () => removeSubject(subject.name));
+
+                header.appendChild(title);
+                header.appendChild(removeBtn);
+                subjectCard.appendChild(header);
+
+                const table = document.createElement('table');
+                table.className = 'w-full';
+                table.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th class="text-left py-2 px-4 bg-gray-50 font-semibold text-gray-600">Assessment</th>
+                            <th class="text-left py-2 px-4 bg-gray-50 font-semibold text-gray-600">Weight</th>
+                            <th class="text-left py-2 px-4 bg-gray-50 font-semibold text-gray-600">Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${subject.assessments.map(assessment => `
+                            <tr>
+                                <td class="py-2 px-4 border-b">${assessment.name}</td>
+                                <td class="py-2 px-4 border-b">${assessment.weight}%</td>
+                                <td class="py-2 px-4 border-b">
+                                    <input type="number" min="0" max="100" placeholder="Enter score" 
+                                           class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 ease-in-out"
+                                           oninput="updateTotalScore('${subject.name}')">
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                `;
+
+                const totalScoreRow = document.createElement('div');
+                totalScoreRow.className = 'px-6 py-4 bg-gray-50 flex justify-between items-center';
+                totalScoreRow.innerHTML = `
+                    <span class="font-semibold text-gray-700">Total Score:</span>
+                    <span class="font-bold text-lg text-indigo-600" id="total-${subject.name}">0.00</span>
+                `;
+
+                subjectCard.appendChild(table);
+                subjectCard.appendChild(totalScoreRow);
+                selectedSubjectsContainer.appendChild(subjectCard);
+            });
+        }
+
+        function updateTotalScore(subjectName) {
+            const subject = selectedSubjects.find(s => s.name === subjectName);
+            if (subject) {
+                const totalScore = calculateTotalScore(subject);
+                document.getElementById(`total-${subjectName}`).textContent = totalScore;
+            }
+        }
+
+        // Dark/Light Mode Toggle Script
+        const modeToggle = document.getElementById('mode-toggle');
+        const modeIcon = document.getElementById('mode-icon');
+        const body = document.body;
+
+        modeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+
+            if (body.classList.contains('dark-mode')) {
+                modeIcon.innerHTML = `
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 4V2m4.24 3.76l1.42-1.42M18 12h2M6.76 17.24l-1.42 1.42M12 20v2m4.24-3.76l1.42 1.42M6 12H4m4.24-4.24l-1.42-1.42M12 4a8 8 0 018 8 8 8 0 01-8 8 8 8 0 01-8-8 8 8 0 018-8z"/>
+                `;
+            } else {
+                modeIcon.innerHTML = `
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 3v2M12 19v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M3 12h2m14 0h2m-9.78-7.78l1.42 1.42M16.36 8.36l1.42 1.42M12 7c3.87 0 7 3.13 7 7s-3.13 7-7 7 7-3.13 7-7-3.13-7-7-7z"/>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>
